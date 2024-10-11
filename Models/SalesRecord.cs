@@ -1,0 +1,25 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace TrailerCompanyBackend.Models;
+
+public partial class SalesRecord
+{
+    public int SalesId { get; set; }
+
+    public int? TrailerId { get; set; }
+
+    public int? AccessorySizeId { get; set; }
+
+    public DateTime SalesTime { get; set; }
+
+    public double SalesPrice { get; set; }
+
+    public string InvNumber { get; set; } = null!;
+
+    public string Operator { get; set; } = null!;
+
+    public virtual AccessorySize? AccessorySize { get; set; }
+
+    public virtual Trailer? Trailer { get; set; }
+}
