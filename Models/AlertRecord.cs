@@ -22,4 +22,6 @@ public partial class AlertRecord
     public virtual AccessorySize? AccessorySize { get; set; }
 
     public virtual Trailer? Trailer { get; set; }
+
+    public string? Message { get; set; }
 }

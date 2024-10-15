@@ -1,6 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
 using TrailerCompanyBackend.Models;
 using TrailerCompanyBackend.Services;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace TrailerCompanyBackend.Controllers
 {
@@ -67,5 +71,48 @@ namespace TrailerCompanyBackend.Controllers
 
             return NoContent();
         }
+
+        [HttpPatch("{id}")]
+        public async Task<IActionResult> EditStore(int id, [FromBody] JsonPatchDocument<Store> patchDoc)
+        {
+            var store = await _storeService.GetStoreByIdAsync(id);
+            if (store == null)
+            {
+                return NotFound();
+            }
+
+            try
+            {
+                patchDoc.ApplyTo(store);
+            }
+            catch (Exception ex) 
+            {
+     
+                return BadRequest($"Patch failed: {ex.Message}");
+            }
+
+
+            var updateResult = await _storeService.UpdateStoreAsync(store);
+            if (!updateResult)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
+
+        [HttpPost("copy-store-contents")]
+        public async Task<IActionResult> CopyStoreContents(int sourceStoreId, int targetStoreId)
+        {
+            var result = await _storeService.CopyStoreContentsAsync(sourceStoreId, targetStoreId);
+            
+            if (!result)
+            {
+                return NotFound("Source or target store not found.");
+            }
+
+            return Ok("Store contents copied successfully.");
+        }
+
     }
 }

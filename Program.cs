@@ -4,9 +4,8 @@ using TrailerCompanyBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddDbContext<TrailerCompanyDbContext>(options =>
-    options.UseSqlite("Data Source=../instance/trailer_company.db"));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Add StoreService to the DI container.
 builder.Services.AddScoped<StoreService>();
@@ -31,5 +30,6 @@ app.UseHttpsRedirection();
 
 // Map controllers to handle API requests.
 app.MapControllers();
+
 
 app.Run();
