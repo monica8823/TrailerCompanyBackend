@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TrailerCompanyBackend.Models;
 
 public partial class RepairRecord
 {
+
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int RepairId { get; set; }
 
     public int? TrailerId { get; set; }

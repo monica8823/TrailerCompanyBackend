@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TrailerCompanyBackend.Models;
 
 public partial class SalesRecord
 {
+
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int SalesId { get; set; }
 
     public int? TrailerId { get; set; }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using TrailerCompanyBackend.Services;
 using TrailerCompanyBackend.DTOs; 
 
+
 namespace TrailerCompanyBackend.Controllers
 {
     [Route("api/[controller]")]
@@ -15,29 +16,24 @@ namespace TrailerCompanyBackend.Controllers
             _userService = userService;
         }
 
-        [HttpPost("Register")]
-            public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] RegisterRequest registerRequest)
+        {
+            if (!ModelState.IsValid)
             {
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState);
-                }
+                return BadRequest(ModelState);
+            }
 
-                // user roll to enum
-                if (!Enum.TryParse(registerRequest.Role, true, out UserRole userRole))
-                {
-                    return BadRequest("Invalid role.");
-                }
+            var newUser = await _userService.RegisterUserAsync(registerRequest.Email, registerRequest.Password);
 
-                var newUser = await _userService.RegisterUserAsync(registerRequest.Email, registerRequest.Password, userRole);
+            if (newUser == null)
+            {
+                return BadRequest("Registration failed. Email might already be registered or invalid.");
+            }
 
-                if (newUser == null)
-                {
-                    return BadRequest("Registration failed. Email might already be registered or invalid.");
-                }
-
-                return Ok(newUser);
+            return Ok(newUser);
 }
+
 
 
         // POST: api/User/Login

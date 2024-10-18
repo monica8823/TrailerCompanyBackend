@@ -4,22 +4,24 @@ using TrailerCompanyBackend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Register the database context with a connection string from appsettings.json
 builder.Services.AddDbContext<TrailerCompanyDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Add StoreService to the DI container.
+// Register services in the DI container
 builder.Services.AddScoped<StoreService>();
+builder.Services.AddScoped<UserService>();
 
-// Add services to the container.
+// Add controllers to the DI container
 builder.Services.AddControllers();
 
-// Enable API documentation (Swagger)
+// Enable Swagger for API documentation
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -28,8 +30,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Map controllers to handle API requests.
+// Map controllers to handle API requests
 app.MapControllers();
-
 
 app.Run();

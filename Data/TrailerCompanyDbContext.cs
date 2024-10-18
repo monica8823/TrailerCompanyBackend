@@ -16,39 +16,30 @@ namespace TrailerCompanyBackend.Models
         }
 
         public virtual DbSet<Accessory> Accessories { get; set; }
-
         public virtual DbSet<AccessorySize> AccessorySizes { get; set; }
-
         public virtual DbSet<AlertRecord> AlertRecords { get; set; }
-
-        public virtual DbSet<AssemblyRecord> AssemblyRecords { get; set; }
-
+    
         public virtual DbSet<DisposalRecord> DisposalRecords { get; set; }
-
         public virtual DbSet<InventoryRecord> InventoryRecords { get; set; }
-
         public virtual DbSet<RepairRecord> RepairRecords { get; set; }
-
         public virtual DbSet<RestockRecord> RestockRecords { get; set; }
-
         public virtual DbSet<SalesRecord> SalesRecords { get; set; }
-
         public virtual DbSet<Store> Stores { get; set; }
-
         public virtual DbSet<Trailer> Trailers { get; set; }
-
         public virtual DbSet<TransferRecord> TransferRecords { get; set; }
-
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<OperationLog> OperationLogs { get; set; }  // 日志表
+        public virtual DbSet<AssemblyRecord> AssemblyRecords { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Accessory
             modelBuilder.Entity<Accessory>(entity =>
             {
                 entity.ToTable("accessories");
 
                 entity.Property(e => e.AccessoryId)
-                    .ValueGeneratedNever()
+                    .ValueGeneratedOnAdd()
                     .HasColumnName("accessory_id");
                 entity.Property(e => e.AccessoryType)
                     .HasColumnType("VARCHAR(100)")
@@ -63,6 +54,7 @@ namespace TrailerCompanyBackend.Models
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
+            // AccessorySize
             modelBuilder.Entity<AccessorySize>(entity =>
             {
                 entity.HasKey(e => e.SizeId);
@@ -70,7 +62,7 @@ namespace TrailerCompanyBackend.Models
                 entity.ToTable("accessory_sizes");
 
                 entity.Property(e => e.SizeId)
-                    .ValueGeneratedNever()
+                    .ValueGeneratedOnAdd()
                     .HasColumnName("size_id");
                 entity.Property(e => e.AccessoryId).HasColumnName("accessory_id");
                 entity.Property(e => e.DetailedSpecification)
@@ -86,6 +78,7 @@ namespace TrailerCompanyBackend.Models
                     .OnDelete(DeleteBehavior.ClientSetNull);
             });
 
+            // AlertRecord
             modelBuilder.Entity<AlertRecord>(entity =>
             {
                 entity.HasKey(e => e.AlertId);
@@ -93,7 +86,7 @@ namespace TrailerCompanyBackend.Models
                 entity.ToTable("alert_records");
 
                 entity.Property(e => e.AlertId)
-                    .ValueGeneratedNever()
+                    .ValueGeneratedOnAdd()
                     .HasColumnName("alert_id");
                 entity.Property(e => e.AccessorySizeId).HasColumnName("accessory_size_id");
                 entity.Property(e => e.AlertTime)
@@ -111,57 +104,7 @@ namespace TrailerCompanyBackend.Models
                 entity.HasOne(d => d.Trailer).WithMany(p => p.AlertRecords).HasForeignKey(d => d.TrailerId);
             });
 
-            modelBuilder.Entity<AssemblyRecord>(entity =>
-            {
-                entity.HasKey(e => e.AssemblyId);
-
-                entity.ToTable("assembly_records");
-
-                entity.Property(e => e.AssemblyId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("assembly_id");
-                entity.Property(e => e.AccessorySizeId).HasColumnName("accessory_size_id");
-                entity.Property(e => e.AssemblyTime)
-                    .HasColumnType("DATETIME")
-                    .HasColumnName("assembly_time");
-                entity.Property(e => e.Operator)
-                    .HasColumnType("VARCHAR(100)")
-                    .HasColumnName("operator");
-                entity.Property(e => e.TrailerId).HasColumnName("trailer_id");
-
-                entity.HasOne(d => d.AccessorySize).WithMany(p => p.AssemblyRecords).HasForeignKey(d => d.AccessorySizeId);
-
-                entity.HasOne(d => d.Trailer).WithMany(p => p.AssemblyRecords)
-                    .HasForeignKey(d => d.TrailerId)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
-            });
-
-            modelBuilder.Entity<DisposalRecord>(entity =>
-            {
-                entity.HasKey(e => e.DisposalId);
-
-                entity.ToTable("disposal_records");
-
-                entity.Property(e => e.DisposalId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("disposal_id");
-                entity.Property(e => e.AccessorySizeId).HasColumnName("accessory_size_id");
-                entity.Property(e => e.DisposalTime)
-                    .HasColumnType("DATETIME")
-                    .HasColumnName("disposal_time");
-                entity.Property(e => e.Operator)
-                    .HasColumnType("VARCHAR(100)")
-                    .HasColumnName("operator");
-                entity.Property(e => e.Reason)
-                    .HasColumnType("VARCHAR(500)")
-                    .HasColumnName("reason");
-                entity.Property(e => e.TrailerId).HasColumnName("trailer_id");
-
-                entity.HasOne(d => d.AccessorySize).WithMany(p => p.DisposalRecords).HasForeignKey(d => d.AccessorySizeId);
-
-                entity.HasOne(d => d.Trailer).WithMany(p => p.DisposalRecords).HasForeignKey(d => d.TrailerId);
-            });
-
+            // InventoryRecord (and other records should follow similar)
             modelBuilder.Entity<InventoryRecord>(entity =>
             {
                 entity.HasKey(e => e.RecordId);
@@ -169,7 +112,7 @@ namespace TrailerCompanyBackend.Models
                 entity.ToTable("inventory_records");
 
                 entity.Property(e => e.RecordId)
-                    .ValueGeneratedNever()
+                    .ValueGeneratedOnAdd()
                     .HasColumnName("record_id");
                 entity.Property(e => e.AccessorySizeId).HasColumnName("accessory_size_id");
                 entity.Property(e => e.OperationTime)
@@ -186,114 +129,19 @@ namespace TrailerCompanyBackend.Models
                 entity.Property(e => e.TrailerId).HasColumnName("trailer_id");
 
                 entity.HasOne(d => d.AccessorySize).WithMany(p => p.InventoryRecords).HasForeignKey(d => d.AccessorySizeId);
-
                 entity.HasOne(d => d.TargetStore).WithMany(p => p.InventoryRecords).HasForeignKey(d => d.TargetStoreId);
-
                 entity.HasOne(d => d.Trailer).WithMany(p => p.InventoryRecords).HasForeignKey(d => d.TrailerId);
             });
 
-            modelBuilder.Entity<RepairRecord>(entity =>
-            {
-                entity.HasKey(e => e.RepairId);
-
-                entity.ToTable("repair_records");
-
-                entity.Property(e => e.RepairId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("repair_id");
-                entity.Property(e => e.AccessorySizeId).HasColumnName("accessory_size_id");
-                entity.Property(e => e.Operator)
-                    .HasColumnType("VARCHAR(100)")
-                    .HasColumnName("operator");
-                entity.Property(e => e.RepairDetails)
-                    .HasColumnType("VARCHAR(500)")
-                    .HasColumnName("repair_details");
-                entity.Property(e => e.RepairTime)
-                    .HasColumnType("DATETIME")
-                    .HasColumnName("repair_time");
-                entity.Property(e => e.TrailerId).HasColumnName("trailer_id");
-
-                entity.HasOne(d => d.AccessorySize).WithMany(p => p.RepairRecords).HasForeignKey(d => d.AccessorySizeId);
-
-                entity.HasOne(d => d.Trailer).WithMany(p => p.RepairRecords).HasForeignKey(d => d.TrailerId);
-            });
-
-            modelBuilder.Entity<RestockRecord>(entity =>
-            {
-                entity.HasKey(e => e.RestockId);
-
-                entity.ToTable("restock_records");
-
-                entity.Property(e => e.RestockId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("restock_id");
-                entity.Property(e => e.AccessorySizeId).HasColumnName("accessory_size_id");
-                entity.Property(e => e.Operator)
-                    .HasColumnType("VARCHAR(100)")
-                    .HasColumnName("operator");
-                entity.Property(e => e.RestockQuantity).HasColumnName("restock_quantity");
-                entity.Property(e => e.RestockTime)
-                    .HasColumnType("DATETIME")
-                    .HasColumnName("restock_time");
-                entity.Property(e => e.TrailerId).HasColumnName("trailer_id");
-
-                entity.HasOne(d => d.AccessorySize).WithMany(p => p.RestockRecords).HasForeignKey(d => d.AccessorySizeId);
-
-                entity.HasOne(d => d.Trailer).WithMany(p => p.RestockRecords).HasForeignKey(d => d.TrailerId);
-            });
-
-            modelBuilder.Entity<SalesRecord>(entity =>
-            {
-                entity.HasKey(e => e.SalesId);
-
-                entity.ToTable("sales_records");
-
-                entity.Property(e => e.SalesId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("sales_id");
-                entity.Property(e => e.AccessorySizeId).HasColumnName("accessory_size_id");
-                entity.Property(e => e.InvNumber)
-                    .HasColumnType("VARCHAR(50)")
-                    .HasColumnName("inv_number");
-                entity.Property(e => e.Operator)
-                    .HasColumnType("VARCHAR(100)")
-                    .HasColumnName("operator");
-                entity.Property(e => e.SalesPrice)
-                    .HasColumnType("FLOAT")
-                    .HasColumnName("sales_price");
-                entity.Property(e => e.SalesTime)
-                    .HasColumnType("DATETIME")
-                    .HasColumnName("sales_time");
-                entity.Property(e => e.TrailerId).HasColumnName("trailer_id");
-
-                entity.HasOne(d => d.AccessorySize).WithMany(p => p.SalesRecords).HasForeignKey(d => d.AccessorySizeId);
-
-                entity.HasOne(d => d.Trailer).WithMany(p => p.SalesRecords).HasForeignKey(d => d.TrailerId);
-            });
-
-            modelBuilder.Entity<Store>(entity =>
-            {
-                entity.ToTable("stores");
-
-                entity.Property(e => e.StoreId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("store_id");
-                entity.Property(e => e.StoreAddress)
-                    .HasColumnType("VARCHAR(200)")
-                    .HasColumnName("store_address");
-                entity.Property(e => e.StoreName)
-                    .HasColumnType("VARCHAR(100)")
-                    .HasColumnName("store_name");
-            });
-
+            // Trailer
             modelBuilder.Entity<Trailer>(entity =>
             {
                 entity.ToTable("trailers");
 
-                entity.HasIndex(e => e.Vin, "IX_trailers_vin").IsUnique();
+                entity.HasIndex(e => e.Vin, "IX_trailers_vin").IsUnique();  // VIN唯一性检查
 
                 entity.Property(e => e.TrailerId)
-                    .ValueGeneratedNever()
+                    .ValueGeneratedOnAdd()
                     .HasColumnName("trailer_id");
                 entity.Property(e => e.CurrentStatus)
                     .HasColumnType("VARCHAR(50)")
@@ -335,63 +183,90 @@ namespace TrailerCompanyBackend.Models
                         });
             });
 
+            // TransferRecord - 添加双向外键关系
             modelBuilder.Entity<TransferRecord>(entity =>
             {
-                entity.HasKey(e => e.TransferId);
-
                 entity.ToTable("transfer_records");
 
                 entity.Property(e => e.TransferId)
-                    .ValueGeneratedNever()
+                    .ValueGeneratedOnAdd()
                     .HasColumnName("transfer_id");
-                entity.Property(e => e.AccessorySizeId).HasColumnName("accessory_size_id");
-                entity.Property(e => e.Operator)
-                    .HasColumnType("VARCHAR(100)")
-                    .HasColumnName("operator");
-                entity.Property(e => e.SourceStoreId).HasColumnName("source_store_id");
-                entity.Property(e => e.TargetStoreId).HasColumnName("target_store_id");
-                entity.Property(e => e.TrailerId).HasColumnName("trailer_id");
+                
                 entity.Property(e => e.TransferTime)
                     .HasColumnType("DATETIME")
                     .HasColumnName("transfer_time");
 
-                entity.HasOne(d => d.AccessorySize).WithMany(p => p.TransferRecords).HasForeignKey(d => d.AccessorySizeId);
+                entity.Property(e => e.SourceStoreId).HasColumnName("source_store_id");
+                entity.Property(e => e.TargetStoreId).HasColumnName("target_store_id");
+                entity.Property(e => e.Operator)
+                    .HasColumnType("VARCHAR(100)")
+                    .HasColumnName("operator");
 
-                entity.HasOne(d => d.SourceStore).WithMany(p => p.TransferRecordSourceStores)
+                // 外键指向来源 Store
+                entity.HasOne(d => d.SourceStore)
+                    .WithMany(p => p.TransferRecordSourceStores)
                     .HasForeignKey(d => d.SourceStoreId)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
+                    .OnDelete(DeleteBehavior.Restrict);  // 禁止删除时的级联操作
 
-                entity.HasOne(d => d.TargetStore).WithMany(p => p.TransferRecordTargetStores)
+                // 外键指向目标 Store
+                entity.HasOne(d => d.TargetStore)
+                    .WithMany(p => p.TransferRecordTargetStores)
                     .HasForeignKey(d => d.TargetStoreId)
-                    .OnDelete(DeleteBehavior.ClientSetNull);
-
-                entity.HasOne(d => d.Trailer).WithMany(p => p.TransferRecords).HasForeignKey(d => d.TrailerId);
+                    .OnDelete(DeleteBehavior.Restrict);
             });
 
-            modelBuilder.Entity<User>(entity =>
+            // OperationLog - Log table
+            modelBuilder.Entity<OperationLog>(entity =>
             {
-                entity.ToTable("users");
+                entity.ToTable("operation_logs");
 
-                entity.HasIndex(e => e.Email, "IX_users_email").IsUnique();
-
-                entity.Property(e => e.UserId)
-                    .ValueGeneratedNever()
-                    .HasColumnName("user_id");
-                entity.Property(e => e.Email)
-                    .HasColumnType("VARCHAR(120)")
-                    .HasColumnName("email");
-                entity.Property(e => e.Password)
-                    .HasColumnType("VARCHAR(200)")
-                    .HasColumnName("password");
-                entity.Property(e => e.RegistrationDate)
+                entity.Property(e => e.LogId)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnName("log_id");
+                entity.Property(e => e.EntityType)
+                    .HasColumnType("VARCHAR(50)")
+                    .HasColumnName("entity_type");
+                entity.Property(e => e.EntityId).HasColumnName("entity_id");
+                entity.Property(e => e.OperationType)
+                    .HasColumnType("VARCHAR(50)")
+                    .HasColumnName("operation_type");
+                entity.Property(e => e.UserId).HasColumnName("user_id");
+                entity.Property(e => e.Description)
+                    .HasColumnType("VARCHAR(500)")
+                    .HasColumnName("description");
+                entity.Property(e => e.OperationTime)
                     .HasColumnType("DATETIME")
-                    .HasColumnName("registration_date");
-                entity.Property(e => e.Role)
-                    .HasColumnType("VARCHAR(50)")
-                    .HasColumnName("role");
-                entity.Property(e => e.Status)
-                    .HasColumnType("VARCHAR(50)")
-                    .HasColumnName("status");
+                    .HasColumnName("operation_time");
+            });
+
+             modelBuilder.Entity<AssemblyRecord>(entity =>
+            {
+                entity.ToTable("assembly_records");
+
+                entity.HasKey(e => e.AssemblyId);  // 设置 AssemblyId 为主键
+
+                entity.Property(e => e.AssemblyId)
+                    .ValueGeneratedOnAdd()  // 设置为自动递增
+                    .HasColumnName("assembly_id");
+
+                entity.Property(e => e.AssemblyTime)
+                    .HasColumnType("DATETIME")
+                    .HasColumnName("assembly_time");
+
+                entity.Property(e => e.Operator)
+                    .HasColumnType("VARCHAR(100)")
+                    .HasColumnName("operator");
+
+                entity.Property(e => e.AccessorySizeId).HasColumnName("accessory_size_id");
+                entity.Property(e => e.TrailerId).HasColumnName("trailer_id");
+
+                entity.HasOne(d => d.AccessorySize)
+                    .WithMany(p => p.AssemblyRecords)
+                    .HasForeignKey(d => d.AccessorySizeId);
+
+                entity.HasOne(d => d.Trailer)
+                    .WithMany(p => p.AssemblyRecords)
+                    .HasForeignKey(d => d.TrailerId);
             });
 
             OnModelCreatingPartial(modelBuilder);
@@ -403,7 +278,6 @@ namespace TrailerCompanyBackend.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                // 仅在没有通过 DI 提供 options 的情况下使用
                 optionsBuilder.UseSqlite("Data Source=C:/工作日志/库存管理系统/backend/TrailerCompanyBackend/trailer_company.db");
             }
         }

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TrailerCompanyBackend.Models;
 
@@ -10,9 +11,11 @@ using TrailerCompanyBackend.Models;
 namespace TrailerCompanyBackend.Migrations
 {
     [DbContext(typeof(TrailerCompanyDbContext))]
-    partial class TrailerCompanyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241016053326_ReinitializeDatabase")]
+    partial class ReinitializeDatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");

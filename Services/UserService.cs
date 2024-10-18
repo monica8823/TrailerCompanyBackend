@@ -17,7 +17,7 @@ namespace TrailerCompanyBackend.Services
             _logger = logger;
         }
 
-        public async Task<User?> RegisterUserAsync(string email, string password, UserRole role)
+        public async Task<User?> RegisterUserAsync(string email, string password)
         {
             try
             {
@@ -39,7 +39,7 @@ namespace TrailerCompanyBackend.Services
                 {
                     Email = email,
                     Password = hashedPassword,
-                    Role = role.ToString(),
+                    Role = "User", 
                     RegistrationDate = DateTime.Now,
                     Status = "Active"
                 };
@@ -55,7 +55,8 @@ namespace TrailerCompanyBackend.Services
                 _logger.LogError(ex, "Error occurred while registering user with email: {Email}", email);
                 throw;
             }
-        }
+}
+
 
         public async Task<User?> LoginUserAsync(string email, string password)
         {
