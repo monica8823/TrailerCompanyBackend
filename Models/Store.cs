@@ -24,4 +24,7 @@ public partial class Store
     public virtual ICollection<TransferRecord> TransferRecordSourceStores { get; set; } = new List<TransferRecord>();
 
     public virtual ICollection<TransferRecord> TransferRecordTargetStores { get; set; } = new List<TransferRecord>();
+
+     public virtual ICollection<TrailerModel> TrailerModels { get; set; } = new List<TrailerModel>();
+    
 }

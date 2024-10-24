@@ -137,8 +137,8 @@ namespace TrailerCompanyBackend.Services
             try
             {
                 var sourceStore = await _context.Stores
-                    .Include(s => s.Trailers)
-                    .Include(s => s.Accessories)
+                    .Include(s => s.TrailerModels)  // Include TrailerModels instead of Trailers
+                    .Include(s => s.Accessories)  // Accessories still need to be copied
                     .FirstOrDefaultAsync(s => s.StoreId == sourceStoreId);
 
                 var targetStore = await _context.Stores.FindAsync(targetStoreId);
@@ -149,44 +149,41 @@ namespace TrailerCompanyBackend.Services
                     return false;
                 }
 
-                // Copy trailers
-                foreach (var trailer in sourceStore.Trailers)
+                // Copy TrailerModels instead of Trailers
+                foreach (var trailerModel in sourceStore.TrailerModels)
                 {
-                    var newTrailer = new Trailer
+                    var newTrailerModel = new TrailerModel
                     {
-                        ModelName = trailer.ModelName,
-                        RatedCapacity = trailer.RatedCapacity,
-                        Size = trailer.Size,
-                        CurrentStatus = trailer.CurrentStatus,
-                        ThresholdQuantity = trailer.ThresholdQuantity,
-                        StoreId = targetStoreId,  // Assign to the new store
+                        ModelName = trailerModel.ModelName,
+                        StoreId = targetStoreId  // Assign to the new store
                     };
 
-                    _context.Trailers.Add(newTrailer);
+                    _context.TrailerModels.Add(newTrailerModel);
                 }
 
-                // Copy accessories
+                // Copy accessories (as in original code)
                 foreach (var accessory in sourceStore.Accessories)
                 {
                     var newAccessory = new Accessory
                     {
                         AccessoryType = accessory.AccessoryType,
                         Description = accessory.Description,
-                        StoreId = targetStoreId,  // Assign to the new store
+                        StoreId = targetStoreId  // Assign to the new store
                     };
 
                     _context.Accessories.Add(newAccessory);
                 }
 
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Contents from store with ID: {SourceStoreId} copied to store with ID: {TargetStoreId} successfully.", sourceStoreId, targetStoreId);
+                _logger.LogInformation("Trailer models and accessories from store with ID: {SourceStoreId} copied to store with ID: {TargetStoreId} successfully.", sourceStoreId, targetStoreId);
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while copying contents from store with ID: {SourceStoreId} to store with ID: {TargetStoreId}", sourceStoreId, targetStoreId);
+                _logger.LogError(ex, "Error occurred while copying trailer models and accessories from store with ID: {SourceStoreId} to store with ID: {TargetStoreId}", sourceStoreId, targetStoreId);
                 throw;
             }
-        }
+    }
+
     }
 }

@@ -198,55 +198,6 @@ namespace TrailerCompanyBackend.Services
         }
 
 
-        // copy traliers from one store to another one
-      // copy trailers from one store to another one
-        public async Task<bool> CopyTrailersFromExistingStoreAsync(int sourceStoreId, int targetStoreId)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var trailersInSourceStore = await _context.Trailers
-                    .Where(t => t.StoreId == sourceStoreId)
-                    .ToListAsync();
-
-                if (trailersInSourceStore.Count == 0)
-                {
-                    _logger.LogWarning("No trailers found in source store ID: {SourceStoreId}", sourceStoreId);
-                    return false;
-                }
-
-                foreach (var trailer in trailersInSourceStore)
-                {
-                    var newTrailer = new Trailer
-                    {
-                        ModelName = trailer.ModelName,  
-                        StoreId = targetStoreId,       
-                        Vin = null,                     
-                        Size = null,
-                        RatedCapacity = 0.0,            
-                        CurrentStatus = "Not Stocked",  
-                        CustomFields = trailer.CustomFields // Copy CustomFields from the source trailer
-                    };
-
-                    _context.Trailers.Add(newTrailer);
-                }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();  // Commit transaction
-                _logger.LogInformation("Trailers from store ID: {SourceStoreId} copied to store ID: {TargetStoreId}", sourceStoreId, targetStoreId);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();  // Rollback transaction in case of error
-                _logger.LogError(ex, "Error occurred while copying trailers from store ID: {SourceStoreId} to store ID: {TargetStoreId}", sourceStoreId, targetStoreId);
-                return false;
-            }
-        }
-
-
-
-
         // Method to get a trailer by its ID
         public async Task<Trailer?> GetTrailerByIdAsync(int trailerId)
         {
@@ -318,6 +269,5 @@ namespace TrailerCompanyBackend.Services
 // DeleteTrailerAsync：删除单个拖车。
 // BatchDeleteTrailersAsync：批量删除拖车。
 // GetTrailerLogsAsync：获取指定拖车的操作日志。
-// CopyTrailersFromExistingStoreAsync：批量复制拖车记录。
 // GetTrailerById 方法
 // GlobalSearchTrailersAsync 全局搜索。

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.Sqlite;
 
 namespace TrailerCompanyBackend.Models
 {
@@ -18,7 +19,6 @@ namespace TrailerCompanyBackend.Models
         public virtual DbSet<Accessory> Accessories { get; set; }
         public virtual DbSet<AccessorySize> AccessorySizes { get; set; }
         public virtual DbSet<AlertRecord> AlertRecords { get; set; }
-    
         public virtual DbSet<DisposalRecord> DisposalRecords { get; set; }
         public virtual DbSet<InventoryRecord> InventoryRecords { get; set; }
         public virtual DbSet<RepairRecord> RepairRecords { get; set; }
@@ -26,10 +26,13 @@ namespace TrailerCompanyBackend.Models
         public virtual DbSet<SalesRecord> SalesRecords { get; set; }
         public virtual DbSet<Store> Stores { get; set; }
         public virtual DbSet<Trailer> Trailers { get; set; }
+        public virtual DbSet<TrailerModel> TrailerModels { get; set; }  // 添加 TrailerModel DbSet
         public virtual DbSet<TransferRecord> TransferRecords { get; set; }
         public virtual DbSet<User> Users { get; set; }
         public virtual DbSet<OperationLog> OperationLogs { get; set; }  // 日志表
         public virtual DbSet<AssemblyRecord> AssemblyRecords { get; set; }
+        public DbSet<BackupRecord> BackupRecords { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -133,6 +136,25 @@ namespace TrailerCompanyBackend.Models
                 entity.HasOne(d => d.Trailer).WithMany(p => p.InventoryRecords).HasForeignKey(d => d.TrailerId);
             });
 
+            // TrailerModel
+            modelBuilder.Entity<TrailerModel>(entity =>
+            {
+                entity.ToTable("trailer_models");
+
+                entity.Property(e => e.TrailerModelId)
+                    .ValueGeneratedOnAdd()
+                    .HasColumnName("trailer_model_id");
+                entity.Property(e => e.ModelName)
+                    .HasColumnType("VARCHAR(100)")
+                    .HasColumnName("model_name");
+                entity.Property(e => e.StoreId).HasColumnName("store_id");
+
+                entity.HasOne(d => d.Store)
+                    .WithMany(p => p.TrailerModels)
+                    .HasForeignKey(d => d.StoreId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);
+            });
+
             // Trailer
             modelBuilder.Entity<Trailer>(entity =>
             {
@@ -156,6 +178,7 @@ namespace TrailerCompanyBackend.Models
                     .HasColumnType("VARCHAR(50)")
                     .HasColumnName("size");
                 entity.Property(e => e.StoreId).HasColumnName("store_id");
+                entity.Property(e => e.TrailerModelId).HasColumnName("trailer_model_id");  // 新增 TrailerModel 关联
                 entity.Property(e => e.ThresholdQuantity).HasColumnName("threshold_quantity");
                 entity.Property(e => e.Vin)
                     .HasColumnType("VARCHAR(50)")
@@ -164,6 +187,11 @@ namespace TrailerCompanyBackend.Models
                 entity.HasOne(d => d.Store).WithMany(p => p.Trailers)
                     .HasForeignKey(d => d.StoreId)
                     .OnDelete(DeleteBehavior.ClientSetNull);
+
+                entity.HasOne(d => d.TrailerModels)
+                    .WithMany(p => p.Trailers)
+                    .HasForeignKey(d => d.TrailerModelId)
+                    .OnDelete(DeleteBehavior.ClientSetNull);  // TrailerModel 关联
 
                 entity.HasMany(d => d.AccessorySizes).WithMany(p => p.Trailers)
                     .UsingEntity<Dictionary<string, object>>(
@@ -269,6 +297,42 @@ namespace TrailerCompanyBackend.Models
                     .HasForeignKey(d => d.TrailerId);
             });
 
+            // User 配置
+            modelBuilder.Entity<User>(entity =>
+            {
+                entity.ToTable("users");  // 指定表名为小写的 'users'
+
+                entity.HasKey(e => e.UserId);  // 设置主键
+
+                entity.Property(e => e.UserId)
+                    .ValueGeneratedOnAdd()  // 自动递增
+                    .HasColumnName("user_id");
+
+                entity.Property(e => e.Email)
+                    .IsRequired()
+                    .HasColumnType("VARCHAR(255)")
+                    .HasColumnName("email");
+
+                entity.Property(e => e.Password)
+                    .IsRequired()
+                    .HasColumnType("VARCHAR(255)")
+                    .HasColumnName("password");
+
+                entity.Property(e => e.Role)
+                    .IsRequired()
+                    .HasColumnType("VARCHAR(50)")
+                    .HasColumnName("role");
+
+                entity.Property(e => e.Status)
+                    .IsRequired()
+                    .HasColumnType("VARCHAR(50)")
+                    .HasColumnName("status");
+
+                entity.Property(e => e.RegistrationDate)
+                    .HasColumnType("DATETIME")
+                    .HasColumnName("registration_date");
+                });
+
             OnModelCreatingPartial(modelBuilder);
         }
 
@@ -280,6 +344,18 @@ namespace TrailerCompanyBackend.Models
             {
                 optionsBuilder.UseSqlite("Data Source=C:/工作日志/库存管理系统/backend/TrailerCompanyBackend/trailer_company.db");
             }
+
+            // 每次数据库连接时启用外键支持
+            using (var connection = new SqliteConnection("Data Source=C:/工作日志/库存管理系统/backend/TrailerCompanyBackend/trailer_company.db"))
+            {
+                connection.Open();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = "PRAGMA foreign_keys = ON;";
+                    command.ExecuteNonQuery();
+                }
+            }
         }
+
     }
 }

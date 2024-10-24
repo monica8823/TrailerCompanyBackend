@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using TrailerCompanyBackend.Enums;
+using TrailerCompanyBackend.Models;
+
+
+
 
 namespace TrailerCompanyBackend.Models
 {
@@ -12,23 +16,23 @@ namespace TrailerCompanyBackend.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]  
         public int TrailerId { get; set; }
 
-        [Required]
-        public string Vin { get; set; } = null!;
+  
+        public string? Vin { get; set; } = null!;
 
         [Required]
         public string ModelName { get; set; } = null!;
 
-        [Required]
-        public string Size { get; set; } = null!;
+   
+        public string? Size { get; set; } = null!;
 
-        public double RatedCapacity { get; set; } = 0;
+        public double? RatedCapacity { get; set; } = 0;
 
         [Required]
         public string CurrentStatus { get; set; } = null!;
 
         public int StoreId { get; set; }
 
-        public int ThresholdQuantity { get; set; }
+        public int? ThresholdQuantity { get; set; }
 
     // customer can custom the field
         public string? CustomFields { get; set; } // JSON format
@@ -52,5 +56,8 @@ namespace TrailerCompanyBackend.Models
         public virtual ICollection<TransferRecord> TransferRecords { get; set; } = new List<TransferRecord>();
 
         public virtual ICollection<AccessorySize> AccessorySizes { get; set; } = new List<AccessorySize>();
+
+        public int TrailerModelId { get; set; }
+        public virtual TrailerModel TrailerModels { get; set; } = null!;
     }
 }

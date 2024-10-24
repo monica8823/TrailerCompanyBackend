@@ -6,31 +6,51 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace TrailerCompanyBackend.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class AddTrailerModel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "stores",
+                name: "operation_logs",
                 columns: table => new
                 {
-                    store_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    store_name = table.Column<string>(type: "VARCHAR(100)", nullable: false),
-                    store_address = table.Column<string>(type: "VARCHAR(200)", nullable: false)
+                    log_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    entity_type = table.Column<string>(type: "VARCHAR(50)", nullable: false),
+                    entity_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    operation_type = table.Column<string>(type: "VARCHAR(50)", nullable: false),
+                    user_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    description = table.Column<string>(type: "VARCHAR(500)", nullable: false),
+                    operation_time = table.Column<DateTime>(type: "DATETIME", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_stores", x => x.store_id);
+                    table.PrimaryKey("PK_operation_logs", x => x.log_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Stores",
+                columns: table => new
+                {
+                    StoreId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    StoreName = table.Column<string>(type: "TEXT", nullable: false),
+                    StoreAddress = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Stores", x => x.StoreId);
                 });
 
             migrationBuilder.CreateTable(
                 name: "users",
                 columns: table => new
                 {
-                    user_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    email = table.Column<string>(type: "VARCHAR(120)", nullable: false),
-                    password = table.Column<string>(type: "VARCHAR(200)", nullable: false),
+                    user_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    email = table.Column<string>(type: "VARCHAR(255)", nullable: false),
+                    password = table.Column<string>(type: "VARCHAR(255)", nullable: false),
                     role = table.Column<string>(type: "VARCHAR(50)", nullable: false),
                     registration_date = table.Column<DateTime>(type: "DATETIME", nullable: false),
                     status = table.Column<string>(type: "VARCHAR(50)", nullable: false)
@@ -44,7 +64,8 @@ namespace TrailerCompanyBackend.Migrations
                 name: "accessories",
                 columns: table => new
                 {
-                    accessory_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    accessory_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     accessory_type = table.Column<string>(type: "VARCHAR(100)", nullable: false),
                     description = table.Column<string>(type: "VARCHAR(200)", nullable: false),
                     store_id = table.Column<int>(type: "INTEGER", nullable: false)
@@ -53,40 +74,37 @@ namespace TrailerCompanyBackend.Migrations
                 {
                     table.PrimaryKey("PK_accessories", x => x.accessory_id);
                     table.ForeignKey(
-                        name: "FK_accessories_stores_store_id",
+                        name: "FK_accessories_Stores_store_id",
                         column: x => x.store_id,
-                        principalTable: "stores",
-                        principalColumn: "store_id");
+                        principalTable: "Stores",
+                        principalColumn: "StoreId");
                 });
 
             migrationBuilder.CreateTable(
-                name: "trailers",
+                name: "trailer_models",
                 columns: table => new
                 {
-                    trailer_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    vin = table.Column<string>(type: "VARCHAR(50)", nullable: false),
+                    trailer_model_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     model_name = table.Column<string>(type: "VARCHAR(100)", nullable: false),
-                    size = table.Column<string>(type: "VARCHAR(50)", nullable: false),
-                    rated_capacity = table.Column<double>(type: "FLOAT", nullable: false),
-                    current_status = table.Column<string>(type: "VARCHAR(50)", nullable: false),
-                    store_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    threshold_quantity = table.Column<int>(type: "INTEGER", nullable: false)
+                    store_id = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_trailers", x => x.trailer_id);
+                    table.PrimaryKey("PK_trailer_models", x => x.trailer_model_id);
                     table.ForeignKey(
-                        name: "FK_trailers_stores_store_id",
+                        name: "FK_trailer_models_Stores_store_id",
                         column: x => x.store_id,
-                        principalTable: "stores",
-                        principalColumn: "store_id");
+                        principalTable: "Stores",
+                        principalColumn: "StoreId");
                 });
 
             migrationBuilder.CreateTable(
                 name: "accessory_sizes",
                 columns: table => new
                 {
-                    size_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    size_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     accessory_id = table.Column<int>(type: "INTEGER", nullable: false),
                     size_name = table.Column<string>(type: "VARCHAR(50)", nullable: false),
                     detailed_specification = table.Column<string>(type: "VARCHAR(200)", nullable: false),
@@ -103,16 +121,49 @@ namespace TrailerCompanyBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "trailers",
+                columns: table => new
+                {
+                    trailer_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    vin = table.Column<string>(type: "VARCHAR(50)", nullable: true),
+                    model_name = table.Column<string>(type: "VARCHAR(100)", nullable: false),
+                    size = table.Column<string>(type: "VARCHAR(50)", nullable: true),
+                    rated_capacity = table.Column<double>(type: "FLOAT", nullable: true),
+                    current_status = table.Column<string>(type: "VARCHAR(50)", nullable: false),
+                    store_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    threshold_quantity = table.Column<int>(type: "INTEGER", nullable: true),
+                    CustomFields = table.Column<string>(type: "TEXT", nullable: true),
+                    trailer_model_id = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_trailers", x => x.trailer_id);
+                    table.ForeignKey(
+                        name: "FK_trailers_Stores_store_id",
+                        column: x => x.store_id,
+                        principalTable: "Stores",
+                        principalColumn: "StoreId");
+                    table.ForeignKey(
+                        name: "FK_trailers_trailer_models_trailer_model_id",
+                        column: x => x.trailer_model_id,
+                        principalTable: "trailer_models",
+                        principalColumn: "trailer_model_id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "alert_records",
                 columns: table => new
                 {
-                    alert_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    alert_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     trailer_id = table.Column<int>(type: "INTEGER", nullable: true),
                     accessory_size_id = table.Column<int>(type: "INTEGER", nullable: true),
                     current_quantity = table.Column<int>(type: "INTEGER", nullable: false),
                     threshold_quantity = table.Column<int>(type: "INTEGER", nullable: false),
                     alert_time = table.Column<DateTime>(type: "DATETIME", nullable: false),
-                    alert_type = table.Column<string>(type: "VARCHAR(100)", nullable: false)
+                    alert_type = table.Column<string>(type: "VARCHAR(100)", nullable: false),
+                    Message = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -133,7 +184,8 @@ namespace TrailerCompanyBackend.Migrations
                 name: "assembly_records",
                 columns: table => new
                 {
-                    assembly_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    assembly_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     trailer_id = table.Column<int>(type: "INTEGER", nullable: false),
                     accessory_size_id = table.Column<int>(type: "INTEGER", nullable: true),
                     assembly_time = table.Column<DateTime>(type: "DATETIME", nullable: false),
@@ -151,31 +203,33 @@ namespace TrailerCompanyBackend.Migrations
                         name: "FK_assembly_records_trailers_trailer_id",
                         column: x => x.trailer_id,
                         principalTable: "trailers",
-                        principalColumn: "trailer_id");
+                        principalColumn: "trailer_id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "disposal_records",
+                name: "DisposalRecords",
                 columns: table => new
                 {
-                    disposal_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    trailer_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    accessory_size_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    disposal_time = table.Column<DateTime>(type: "DATETIME", nullable: false),
-                    reason = table.Column<string>(type: "VARCHAR(500)", nullable: false),
-                    @operator = table.Column<string>(name: "operator", type: "VARCHAR(100)", nullable: false)
+                    DisposalId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    TrailerId = table.Column<int>(type: "INTEGER", nullable: true),
+                    AccessorySizeId = table.Column<int>(type: "INTEGER", nullable: true),
+                    DisposalTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    Reason = table.Column<string>(type: "TEXT", nullable: false),
+                    Operator = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_disposal_records", x => x.disposal_id);
+                    table.PrimaryKey("PK_DisposalRecords", x => x.DisposalId);
                     table.ForeignKey(
-                        name: "FK_disposal_records_accessory_sizes_accessory_size_id",
-                        column: x => x.accessory_size_id,
+                        name: "FK_DisposalRecords_accessory_sizes_AccessorySizeId",
+                        column: x => x.AccessorySizeId,
                         principalTable: "accessory_sizes",
                         principalColumn: "size_id");
                     table.ForeignKey(
-                        name: "FK_disposal_records_trailers_trailer_id",
-                        column: x => x.trailer_id,
+                        name: "FK_DisposalRecords_trailers_TrailerId",
+                        column: x => x.TrailerId,
                         principalTable: "trailers",
                         principalColumn: "trailer_id");
                 });
@@ -184,7 +238,8 @@ namespace TrailerCompanyBackend.Migrations
                 name: "inventory_records",
                 columns: table => new
                 {
-                    record_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    record_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
                     trailer_id = table.Column<int>(type: "INTEGER", nullable: true),
                     accessory_size_id = table.Column<int>(type: "INTEGER", nullable: true),
                     operation_type = table.Column<string>(type: "VARCHAR(50)", nullable: false),
@@ -197,15 +252,15 @@ namespace TrailerCompanyBackend.Migrations
                 {
                     table.PrimaryKey("PK_inventory_records", x => x.record_id);
                     table.ForeignKey(
+                        name: "FK_inventory_records_Stores_target_store_id",
+                        column: x => x.target_store_id,
+                        principalTable: "Stores",
+                        principalColumn: "StoreId");
+                    table.ForeignKey(
                         name: "FK_inventory_records_accessory_sizes_accessory_size_id",
                         column: x => x.accessory_size_id,
                         principalTable: "accessory_sizes",
                         principalColumn: "size_id");
-                    table.ForeignKey(
-                        name: "FK_inventory_records_stores_target_store_id",
-                        column: x => x.target_store_id,
-                        principalTable: "stores",
-                        principalColumn: "store_id");
                     table.ForeignKey(
                         name: "FK_inventory_records_trailers_trailer_id",
                         column: x => x.trailer_id,
@@ -214,80 +269,84 @@ namespace TrailerCompanyBackend.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "repair_records",
+                name: "RepairRecords",
                 columns: table => new
                 {
-                    repair_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    trailer_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    accessory_size_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    repair_time = table.Column<DateTime>(type: "DATETIME", nullable: false),
-                    repair_details = table.Column<string>(type: "VARCHAR(500)", nullable: false),
-                    @operator = table.Column<string>(name: "operator", type: "VARCHAR(100)", nullable: false)
+                    RepairId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    TrailerId = table.Column<int>(type: "INTEGER", nullable: true),
+                    AccessorySizeId = table.Column<int>(type: "INTEGER", nullable: true),
+                    RepairTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    RepairDetails = table.Column<string>(type: "TEXT", nullable: false),
+                    Operator = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_repair_records", x => x.repair_id);
+                    table.PrimaryKey("PK_RepairRecords", x => x.RepairId);
                     table.ForeignKey(
-                        name: "FK_repair_records_accessory_sizes_accessory_size_id",
-                        column: x => x.accessory_size_id,
+                        name: "FK_RepairRecords_accessory_sizes_AccessorySizeId",
+                        column: x => x.AccessorySizeId,
                         principalTable: "accessory_sizes",
                         principalColumn: "size_id");
                     table.ForeignKey(
-                        name: "FK_repair_records_trailers_trailer_id",
-                        column: x => x.trailer_id,
+                        name: "FK_RepairRecords_trailers_TrailerId",
+                        column: x => x.TrailerId,
                         principalTable: "trailers",
                         principalColumn: "trailer_id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "restock_records",
+                name: "RestockRecords",
                 columns: table => new
                 {
-                    restock_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    trailer_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    accessory_size_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    restock_time = table.Column<DateTime>(type: "DATETIME", nullable: false),
-                    restock_quantity = table.Column<int>(type: "INTEGER", nullable: false),
-                    @operator = table.Column<string>(name: "operator", type: "VARCHAR(100)", nullable: false)
+                    RestockId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    TrailerId = table.Column<int>(type: "INTEGER", nullable: true),
+                    AccessorySizeId = table.Column<int>(type: "INTEGER", nullable: true),
+                    RestockTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    RestockQuantity = table.Column<int>(type: "INTEGER", nullable: false),
+                    Operator = table.Column<string>(type: "TEXT", nullable: false),
+                    RestockMethod = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_restock_records", x => x.restock_id);
+                    table.PrimaryKey("PK_RestockRecords", x => x.RestockId);
                     table.ForeignKey(
-                        name: "FK_restock_records_accessory_sizes_accessory_size_id",
-                        column: x => x.accessory_size_id,
+                        name: "FK_RestockRecords_accessory_sizes_AccessorySizeId",
+                        column: x => x.AccessorySizeId,
                         principalTable: "accessory_sizes",
                         principalColumn: "size_id");
                     table.ForeignKey(
-                        name: "FK_restock_records_trailers_trailer_id",
-                        column: x => x.trailer_id,
+                        name: "FK_RestockRecords_trailers_TrailerId",
+                        column: x => x.TrailerId,
                         principalTable: "trailers",
                         principalColumn: "trailer_id");
                 });
 
             migrationBuilder.CreateTable(
-                name: "sales_records",
+                name: "SalesRecords",
                 columns: table => new
                 {
-                    sales_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    trailer_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    accessory_size_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    sales_time = table.Column<DateTime>(type: "DATETIME", nullable: false),
-                    sales_price = table.Column<double>(type: "FLOAT", nullable: false),
-                    inv_number = table.Column<string>(type: "VARCHAR(50)", nullable: false),
-                    @operator = table.Column<string>(name: "operator", type: "VARCHAR(100)", nullable: false)
+                    SalesId = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    TrailerId = table.Column<int>(type: "INTEGER", nullable: true),
+                    AccessorySizeId = table.Column<int>(type: "INTEGER", nullable: true),
+                    SalesTime = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    SalesPrice = table.Column<double>(type: "REAL", nullable: false),
+                    InvNumber = table.Column<string>(type: "TEXT", nullable: false),
+                    Operator = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_sales_records", x => x.sales_id);
+                    table.PrimaryKey("PK_SalesRecords", x => x.SalesId);
                     table.ForeignKey(
-                        name: "FK_sales_records_accessory_sizes_accessory_size_id",
-                        column: x => x.accessory_size_id,
+                        name: "FK_SalesRecords_accessory_sizes_AccessorySizeId",
+                        column: x => x.AccessorySizeId,
                         principalTable: "accessory_sizes",
                         principalColumn: "size_id");
                     table.ForeignKey(
-                        name: "FK_sales_records_trailers_trailer_id",
-                        column: x => x.trailer_id,
+                        name: "FK_SalesRecords_trailers_TrailerId",
+                        column: x => x.TrailerId,
                         principalTable: "trailers",
                         principalColumn: "trailer_id");
                 });
@@ -318,9 +377,10 @@ namespace TrailerCompanyBackend.Migrations
                 name: "transfer_records",
                 columns: table => new
                 {
-                    transfer_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    trailer_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    accessory_size_id = table.Column<int>(type: "INTEGER", nullable: true),
+                    transfer_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    TrailerId = table.Column<int>(type: "INTEGER", nullable: true),
+                    AccessorySizeId = table.Column<int>(type: "INTEGER", nullable: true),
                     transfer_time = table.Column<DateTime>(type: "DATETIME", nullable: false),
                     source_store_id = table.Column<int>(type: "INTEGER", nullable: false),
                     target_store_id = table.Column<int>(type: "INTEGER", nullable: false),
@@ -330,23 +390,25 @@ namespace TrailerCompanyBackend.Migrations
                 {
                     table.PrimaryKey("PK_transfer_records", x => x.transfer_id);
                     table.ForeignKey(
-                        name: "FK_transfer_records_accessory_sizes_accessory_size_id",
-                        column: x => x.accessory_size_id,
+                        name: "FK_transfer_records_Stores_source_store_id",
+                        column: x => x.source_store_id,
+                        principalTable: "Stores",
+                        principalColumn: "StoreId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_transfer_records_Stores_target_store_id",
+                        column: x => x.target_store_id,
+                        principalTable: "Stores",
+                        principalColumn: "StoreId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_transfer_records_accessory_sizes_AccessorySizeId",
+                        column: x => x.AccessorySizeId,
                         principalTable: "accessory_sizes",
                         principalColumn: "size_id");
                     table.ForeignKey(
-                        name: "FK_transfer_records_stores_source_store_id",
-                        column: x => x.source_store_id,
-                        principalTable: "stores",
-                        principalColumn: "store_id");
-                    table.ForeignKey(
-                        name: "FK_transfer_records_stores_target_store_id",
-                        column: x => x.target_store_id,
-                        principalTable: "stores",
-                        principalColumn: "store_id");
-                    table.ForeignKey(
-                        name: "FK_transfer_records_trailers_trailer_id",
-                        column: x => x.trailer_id,
+                        name: "FK_transfer_records_trailers_TrailerId",
+                        column: x => x.TrailerId,
                         principalTable: "trailers",
                         principalColumn: "trailer_id");
                 });
@@ -382,14 +444,14 @@ namespace TrailerCompanyBackend.Migrations
                 column: "trailer_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_disposal_records_accessory_size_id",
-                table: "disposal_records",
-                column: "accessory_size_id");
+                name: "IX_DisposalRecords_AccessorySizeId",
+                table: "DisposalRecords",
+                column: "AccessorySizeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_disposal_records_trailer_id",
-                table: "disposal_records",
-                column: "trailer_id");
+                name: "IX_DisposalRecords_TrailerId",
+                table: "DisposalRecords",
+                column: "TrailerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_inventory_records_accessory_size_id",
@@ -407,34 +469,34 @@ namespace TrailerCompanyBackend.Migrations
                 column: "trailer_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_repair_records_accessory_size_id",
-                table: "repair_records",
-                column: "accessory_size_id");
+                name: "IX_RepairRecords_AccessorySizeId",
+                table: "RepairRecords",
+                column: "AccessorySizeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_repair_records_trailer_id",
-                table: "repair_records",
-                column: "trailer_id");
+                name: "IX_RepairRecords_TrailerId",
+                table: "RepairRecords",
+                column: "TrailerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_restock_records_accessory_size_id",
-                table: "restock_records",
-                column: "accessory_size_id");
+                name: "IX_RestockRecords_AccessorySizeId",
+                table: "RestockRecords",
+                column: "AccessorySizeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_restock_records_trailer_id",
-                table: "restock_records",
-                column: "trailer_id");
+                name: "IX_RestockRecords_TrailerId",
+                table: "RestockRecords",
+                column: "TrailerId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_sales_records_accessory_size_id",
-                table: "sales_records",
-                column: "accessory_size_id");
+                name: "IX_SalesRecords_AccessorySizeId",
+                table: "SalesRecords",
+                column: "AccessorySizeId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_sales_records_trailer_id",
-                table: "sales_records",
-                column: "trailer_id");
+                name: "IX_SalesRecords_TrailerId",
+                table: "SalesRecords",
+                column: "TrailerId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_trailer_accessory_size_association_accessory_size_id",
@@ -442,9 +504,19 @@ namespace TrailerCompanyBackend.Migrations
                 column: "accessory_size_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_trailer_models_store_id",
+                table: "trailer_models",
+                column: "store_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_trailers_store_id",
                 table: "trailers",
                 column: "store_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_trailers_trailer_model_id",
+                table: "trailers",
+                column: "trailer_model_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_trailers_vin",
@@ -453,9 +525,9 @@ namespace TrailerCompanyBackend.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_transfer_records_accessory_size_id",
+                name: "IX_transfer_records_AccessorySizeId",
                 table: "transfer_records",
-                column: "accessory_size_id");
+                column: "AccessorySizeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_transfer_records_source_store_id",
@@ -468,15 +540,9 @@ namespace TrailerCompanyBackend.Migrations
                 column: "target_store_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_transfer_records_trailer_id",
+                name: "IX_transfer_records_TrailerId",
                 table: "transfer_records",
-                column: "trailer_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_users_email",
-                table: "users",
-                column: "email",
-                unique: true);
+                column: "TrailerId");
         }
 
         /// <inheritdoc />
@@ -489,19 +555,22 @@ namespace TrailerCompanyBackend.Migrations
                 name: "assembly_records");
 
             migrationBuilder.DropTable(
-                name: "disposal_records");
+                name: "DisposalRecords");
 
             migrationBuilder.DropTable(
                 name: "inventory_records");
 
             migrationBuilder.DropTable(
-                name: "repair_records");
+                name: "operation_logs");
 
             migrationBuilder.DropTable(
-                name: "restock_records");
+                name: "RepairRecords");
 
             migrationBuilder.DropTable(
-                name: "sales_records");
+                name: "RestockRecords");
+
+            migrationBuilder.DropTable(
+                name: "SalesRecords");
 
             migrationBuilder.DropTable(
                 name: "trailer_accessory_size_association");
@@ -522,7 +591,10 @@ namespace TrailerCompanyBackend.Migrations
                 name: "accessories");
 
             migrationBuilder.DropTable(
-                name: "stores");
+                name: "trailer_models");
+
+            migrationBuilder.DropTable(
+                name: "Stores");
         }
     }
 }

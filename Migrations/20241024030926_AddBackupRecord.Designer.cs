@@ -11,14 +11,53 @@ using TrailerCompanyBackend.Models;
 namespace TrailerCompanyBackend.Migrations
 {
     [DbContext(typeof(TrailerCompanyDbContext))]
-    [Migration("20241016052623_FixUserIdAutoIncrement")]
-    partial class FixUserIdAutoIncrement
+    [Migration("20241024030926_AddBackupRecord")]
+    partial class AddBackupRecord
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
+
+            modelBuilder.Entity("OperationLog", b =>
+                {
+                    b.Property<int>("LogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("log_id");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(500)")
+                        .HasColumnName("description");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("entity_id");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(50)")
+                        .HasColumnName("entity_type");
+
+                    b.Property<DateTime>("OperationTime")
+                        .HasColumnType("DATETIME")
+                        .HasColumnName("operation_time");
+
+                    b.Property<string>("OperationType")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(50)")
+                        .HasColumnName("operation_type");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("user_id");
+
+                    b.HasKey("LogId");
+
+                    b.ToTable("operation_logs", (string)null);
+                });
 
             modelBuilder.Entity("TrailerAccessorySizeAssociation", b =>
                 {
@@ -40,6 +79,7 @@ namespace TrailerCompanyBackend.Migrations
             modelBuilder.Entity("TrailerCompanyBackend.Models.Accessory", b =>
                 {
                     b.Property<int>("AccessoryId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("accessory_id");
 
@@ -67,6 +107,7 @@ namespace TrailerCompanyBackend.Migrations
             modelBuilder.Entity("TrailerCompanyBackend.Models.AccessorySize", b =>
                 {
                     b.Property<int>("SizeId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("size_id");
 
@@ -98,6 +139,7 @@ namespace TrailerCompanyBackend.Migrations
             modelBuilder.Entity("TrailerCompanyBackend.Models.AlertRecord", b =>
                 {
                     b.Property<int>("AlertId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("alert_id");
 
@@ -141,6 +183,7 @@ namespace TrailerCompanyBackend.Migrations
             modelBuilder.Entity("TrailerCompanyBackend.Models.AssemblyRecord", b =>
                 {
                     b.Property<int>("AssemblyId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("assembly_id");
 
@@ -170,33 +213,46 @@ namespace TrailerCompanyBackend.Migrations
                     b.ToTable("assembly_records", (string)null);
                 });
 
+            modelBuilder.Entity("TrailerCompanyBackend.Models.BackupRecord", b =>
+                {
+                    b.Property<int>("BackupRecordId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("BackupTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("BackupRecordId");
+
+                    b.ToTable("BackupRecords");
+                });
+
             modelBuilder.Entity("TrailerCompanyBackend.Models.DisposalRecord", b =>
                 {
                     b.Property<int>("DisposalId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("disposal_id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("AccessorySizeId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("accessory_size_id");
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("DisposalTime")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("disposal_time");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Operator")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(100)")
-                        .HasColumnName("operator");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Reason")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(500)")
-                        .HasColumnName("reason");
+                        .HasColumnType("TEXT");
 
                     b.Property<int?>("TrailerId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("trailer_id");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("DisposalId");
 
@@ -204,12 +260,13 @@ namespace TrailerCompanyBackend.Migrations
 
                     b.HasIndex("TrailerId");
 
-                    b.ToTable("disposal_records", (string)null);
+                    b.ToTable("DisposalRecords");
                 });
 
             modelBuilder.Entity("TrailerCompanyBackend.Models.InventoryRecord", b =>
                 {
                     b.Property<int>("RecordId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("record_id");
 
@@ -257,30 +314,25 @@ namespace TrailerCompanyBackend.Migrations
             modelBuilder.Entity("TrailerCompanyBackend.Models.RepairRecord", b =>
                 {
                     b.Property<int>("RepairId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("repair_id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("AccessorySizeId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("accessory_size_id");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Operator")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(100)")
-                        .HasColumnName("operator");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("RepairDetails")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(500)")
-                        .HasColumnName("repair_details");
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("RepairTime")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("repair_time");
+                        .HasColumnType("TEXT");
 
                     b.Property<int?>("TrailerId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("trailer_id");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("RepairId");
 
@@ -288,35 +340,34 @@ namespace TrailerCompanyBackend.Migrations
 
                     b.HasIndex("TrailerId");
 
-                    b.ToTable("repair_records", (string)null);
+                    b.ToTable("RepairRecords");
                 });
 
             modelBuilder.Entity("TrailerCompanyBackend.Models.RestockRecord", b =>
                 {
                     b.Property<int>("RestockId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("restock_id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("AccessorySizeId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("accessory_size_id");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Operator")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(100)")
-                        .HasColumnName("operator");
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RestockMethod")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("RestockQuantity")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("restock_quantity");
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("RestockTime")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("restock_time");
+                        .HasColumnType("TEXT");
 
                     b.Property<int?>("TrailerId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("trailer_id");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("RestockId");
 
@@ -324,40 +375,34 @@ namespace TrailerCompanyBackend.Migrations
 
                     b.HasIndex("TrailerId");
 
-                    b.ToTable("restock_records", (string)null);
+                    b.ToTable("RestockRecords");
                 });
 
             modelBuilder.Entity("TrailerCompanyBackend.Models.SalesRecord", b =>
                 {
                     b.Property<int>("SalesId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("sales_id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("AccessorySizeId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("accessory_size_id");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("InvNumber")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(50)")
-                        .HasColumnName("inv_number");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Operator")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(100)")
-                        .HasColumnName("operator");
+                        .HasColumnType("TEXT");
 
                     b.Property<double>("SalesPrice")
-                        .HasColumnType("FLOAT")
-                        .HasColumnName("sales_price");
+                        .HasColumnType("REAL");
 
                     b.Property<DateTime>("SalesTime")
-                        .HasColumnType("DATETIME")
-                        .HasColumnName("sales_time");
+                        .HasColumnType("TEXT");
 
                     b.Property<int?>("TrailerId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("trailer_id");
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("SalesId");
 
@@ -365,33 +410,32 @@ namespace TrailerCompanyBackend.Migrations
 
                     b.HasIndex("TrailerId");
 
-                    b.ToTable("sales_records", (string)null);
+                    b.ToTable("SalesRecords");
                 });
 
             modelBuilder.Entity("TrailerCompanyBackend.Models.Store", b =>
                 {
                     b.Property<int>("StoreId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("store_id");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("StoreAddress")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(200)")
-                        .HasColumnName("store_address");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("StoreName")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(100)")
-                        .HasColumnName("store_name");
+                        .HasColumnType("TEXT");
 
                     b.HasKey("StoreId");
 
-                    b.ToTable("stores", (string)null);
+                    b.ToTable("Stores");
                 });
 
             modelBuilder.Entity("TrailerCompanyBackend.Models.Trailer", b =>
                 {
                     b.Property<int>("TrailerId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("trailer_id");
 
@@ -400,17 +444,19 @@ namespace TrailerCompanyBackend.Migrations
                         .HasColumnType("VARCHAR(50)")
                         .HasColumnName("current_status");
 
+                    b.Property<string>("CustomFields")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("ModelName")
                         .IsRequired()
                         .HasColumnType("VARCHAR(100)")
                         .HasColumnName("model_name");
 
-                    b.Property<double>("RatedCapacity")
+                    b.Property<double?>("RatedCapacity")
                         .HasColumnType("FLOAT")
                         .HasColumnName("rated_capacity");
 
                     b.Property<string>("Size")
-                        .IsRequired()
                         .HasColumnType("VARCHAR(50)")
                         .HasColumnName("size");
 
@@ -418,12 +464,15 @@ namespace TrailerCompanyBackend.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("store_id");
 
-                    b.Property<int>("ThresholdQuantity")
+                    b.Property<int?>("ThresholdQuantity")
                         .HasColumnType("INTEGER")
                         .HasColumnName("threshold_quantity");
 
+                    b.Property<int>("TrailerModelId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("trailer_model_id");
+
                     b.Property<string>("Vin")
-                        .IsRequired()
                         .HasColumnType("VARCHAR(50)")
                         .HasColumnName("vin");
 
@@ -431,21 +480,46 @@ namespace TrailerCompanyBackend.Migrations
 
                     b.HasIndex("StoreId");
 
+                    b.HasIndex("TrailerModelId");
+
                     b.HasIndex(new[] { "Vin" }, "IX_trailers_vin")
                         .IsUnique();
 
                     b.ToTable("trailers", (string)null);
                 });
 
+            modelBuilder.Entity("TrailerCompanyBackend.Models.TrailerModel", b =>
+                {
+                    b.Property<int>("TrailerModelId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("trailer_model_id");
+
+                    b.Property<string>("ModelName")
+                        .IsRequired()
+                        .HasColumnType("VARCHAR(100)")
+                        .HasColumnName("model_name");
+
+                    b.Property<int>("StoreId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("store_id");
+
+                    b.HasKey("TrailerModelId");
+
+                    b.HasIndex("StoreId");
+
+                    b.ToTable("trailer_models", (string)null);
+                });
+
             modelBuilder.Entity("TrailerCompanyBackend.Models.TransferRecord", b =>
                 {
                     b.Property<int>("TransferId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("transfer_id");
 
                     b.Property<int?>("AccessorySizeId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("accessory_size_id");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Operator")
                         .IsRequired()
@@ -461,8 +535,7 @@ namespace TrailerCompanyBackend.Migrations
                         .HasColumnName("target_store_id");
 
                     b.Property<int?>("TrailerId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("trailer_id");
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("TransferTime")
                         .HasColumnType("DATETIME")
@@ -484,17 +557,18 @@ namespace TrailerCompanyBackend.Migrations
             modelBuilder.Entity("User", b =>
                 {
                     b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("user_id");
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(120)")
+                        .HasColumnType("VARCHAR(255)")
                         .HasColumnName("email");
 
                     b.Property<string>("Password")
                         .IsRequired()
-                        .HasColumnType("VARCHAR(200)")
+                        .HasColumnType("VARCHAR(255)")
                         .HasColumnName("password");
 
                     b.Property<DateTime>("RegistrationDate")
@@ -511,13 +585,7 @@ namespace TrailerCompanyBackend.Migrations
                         .HasColumnType("VARCHAR(50)")
                         .HasColumnName("status");
 
-                    b.Property<int>("UserRoleEnum")
-                        .HasColumnType("INTEGER");
-
                     b.HasKey("UserId");
-
-                    b.HasIndex(new[] { "Email" }, "IX_users_email")
-                        .IsUnique();
 
                     b.ToTable("users", (string)null);
                 });
@@ -579,6 +647,7 @@ namespace TrailerCompanyBackend.Migrations
                     b.HasOne("TrailerCompanyBackend.Models.Trailer", "Trailer")
                         .WithMany("AssemblyRecords")
                         .HasForeignKey("TrailerId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("AccessorySize");
@@ -674,6 +743,23 @@ namespace TrailerCompanyBackend.Migrations
                         .HasForeignKey("StoreId")
                         .IsRequired();
 
+                    b.HasOne("TrailerCompanyBackend.Models.TrailerModel", "TrailerModels")
+                        .WithMany("Trailers")
+                        .HasForeignKey("TrailerModelId")
+                        .IsRequired();
+
+                    b.Navigation("Store");
+
+                    b.Navigation("TrailerModels");
+                });
+
+            modelBuilder.Entity("TrailerCompanyBackend.Models.TrailerModel", b =>
+                {
+                    b.HasOne("TrailerCompanyBackend.Models.Store", "Store")
+                        .WithMany("TrailerModels")
+                        .HasForeignKey("StoreId")
+                        .IsRequired();
+
                     b.Navigation("Store");
                 });
 
@@ -686,11 +772,13 @@ namespace TrailerCompanyBackend.Migrations
                     b.HasOne("TrailerCompanyBackend.Models.Store", "SourceStore")
                         .WithMany("TransferRecordSourceStores")
                         .HasForeignKey("SourceStoreId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TrailerCompanyBackend.Models.Store", "TargetStore")
                         .WithMany("TransferRecordTargetStores")
                         .HasForeignKey("TargetStoreId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("TrailerCompanyBackend.Models.Trailer", "Trailer")
@@ -736,6 +824,8 @@ namespace TrailerCompanyBackend.Migrations
 
                     b.Navigation("InventoryRecords");
 
+                    b.Navigation("TrailerModels");
+
                     b.Navigation("Trailers");
 
                     b.Navigation("TransferRecordSourceStores");
@@ -760,6 +850,11 @@ namespace TrailerCompanyBackend.Migrations
                     b.Navigation("SalesRecords");
 
                     b.Navigation("TransferRecords");
+                });
+
+            modelBuilder.Entity("TrailerCompanyBackend.Models.TrailerModel", b =>
+                {
+                    b.Navigation("Trailers");
                 });
 #pragma warning restore 612, 618
         }
