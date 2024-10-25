@@ -15,7 +15,7 @@ builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<TrailerService>();
 builder.Services.AddScoped<TrailerModelManager>();
 builder.Services.AddScoped<ArchiveService>();
-
+builder.Services.AddScoped<AccessoryService>();
 
 // Add controllers to the DI container
 builder.Services.AddControllers();
