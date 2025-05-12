@@ -13,8 +13,7 @@ public partial class Accessory
     public string AccessoryType { get; set; } = null!;
 
     public string Description { get; set; } = null!;
-
-    public int StoreId { get; set; }
+     public int StoreId { get; set; }
 
     public virtual ICollection<AccessorySize> AccessorySizes { get; set; } = new List<AccessorySize>();
 

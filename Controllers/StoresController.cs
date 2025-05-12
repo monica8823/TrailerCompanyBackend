@@ -35,30 +35,47 @@ namespace TrailerCompanyBackend.Controllers
             }
             return store;
         }
-
         [HttpPost]
-        public async Task<ActionResult<Store>> PostStore(Store store)
+        public async Task<IActionResult> CreateStore([FromBody] Store store)
         {
-            await _storeService.CreateStoreAsync(store);
-            return CreatedAtAction(nameof(GetStore), new { id = store.StoreId }, store);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutStore(int id, Store store)
-        {
-            if (id != store.StoreId)
+            if (string.IsNullOrWhiteSpace(store.StoreName))
             {
-                return BadRequest();
+                return BadRequest("Store name cannot be empty.");
             }
 
-            var result = await _storeService.UpdateStoreAsync(store);
-            if (!result)
+            try
             {
-                return NotFound();
+                var createdStore = await _storeService.CreateStoreAsync(store);
+                return CreatedAtAction(nameof(GetStore), new { id = createdStore.StoreId }, createdStore);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+
+
+
+        [HttpPatch("{id}/name")]
+        public async Task<IActionResult> UpdateStoreName(int id, [FromBody] string newName)
+        {
+            
+            if (string.IsNullOrWhiteSpace(newName))
+            {
+                return BadRequest("Store name cannot be empty.");
+            }
+
+            var updateResult = await _storeService.UpdateStoreNameAsync(id, newName);
+
+            if (!updateResult)
+            {
+                return NotFound($"Store with ID {id} not found.");
             }
 
             return NoContent();
         }
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStore(int id)
@@ -72,34 +89,7 @@ namespace TrailerCompanyBackend.Controllers
             return NoContent();
         }
 
-        [HttpPatch("{id}")]
-        public async Task<IActionResult> EditStore(int id, [FromBody] JsonPatchDocument<Store> patchDoc)
-        {
-            var store = await _storeService.GetStoreByIdAsync(id);
-            if (store == null)
-            {
-                return NotFound();
-            }
 
-            try
-            {
-                patchDoc.ApplyTo(store);
-            }
-            catch (Exception ex) 
-            {
-     
-                return BadRequest($"Patch failed: {ex.Message}");
-            }
-
-
-            var updateResult = await _storeService.UpdateStoreAsync(store);
-            if (!updateResult)
-            {
-                return NotFound();
-            }
-
-            return NoContent();
-        }
 
         [HttpPost("copy-store-contents")]
         public async Task<IActionResult> CopyStoreContents(int sourceStoreId, int targetStoreId)

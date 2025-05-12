@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TrailerCompanyBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f5cff4f3e1cd08221dabf7404e55c329e111abb9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+12b86416d73f7b1edfe05b9a3d7e9ba45d78a770")]
 [assembly: System.Reflection.AssemblyProductAttribute("TrailerCompanyBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TrailerCompanyBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

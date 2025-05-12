@@ -29,12 +29,13 @@ namespace TrailerCompanyBackend.Services
                 // 确定归档的截止日期为上一年度的12月31日
                 var archiveBeforeDate = new DateTime(DateTime.Now.Year - 1, 12, 31);
 
-                // 查找需要归档的数据
+                // 查找需要归档的数据，并加载 TrailerModel
                 var trailersToArchive = await _context.Trailers
-                    .Include(t => t.RestockRecords)
+                    .Include(t => t.TrailerModel)
+                    .Include(t => t.ContainerEntryRecords)
                     .Include(t => t.SalesRecords)
                     .Include(t => t.TransferRecords)
-                    .Where(t => t.RestockRecords.Any(r => r.RestockTime <= archiveBeforeDate))
+                    .Where(t => t.ContainerEntryRecords.Any(r => r.EntryTime  <= archiveBeforeDate))
                     .ToListAsync();
 
                 if (!trailersToArchive.Any())
@@ -77,7 +78,7 @@ namespace TrailerCompanyBackend.Services
             }
         }
 
-        // 导出数据到 CSV 文件的辅助方法
+       // 导出数据到 CSV 文件的辅助方法
         private async Task<bool> ExportDataToCsvAsync(List<Trailer> trailers, string fileName)
         {
             try
@@ -92,7 +93,11 @@ namespace TrailerCompanyBackend.Services
                     // 写入数据
                     foreach (var trailer in trailers)
                     {
-                        var line = $"{trailer.TrailerId},{trailer.Vin},{trailer.ModelName},{trailer.StoreId}";
+                        // 从关联的 TrailerModel 获取 ModelName 和 StoreId
+                        var modelName = trailer.TrailerModel?.ModelName ?? "Unknown Model"; // 如果 TrailerModel 为空，设置默认值
+                        var storeId = trailer.TrailerModel?.StoreId ?? 0; // 如果 TrailerModel 为空，则为 0
+                        
+                        var line = $"{trailer.TrailerId},{trailer.Vin ?? "No VIN"},{modelName},{storeId}";
                         await writer.WriteLineAsync(line);
                     }
                 }
@@ -106,6 +111,7 @@ namespace TrailerCompanyBackend.Services
                 return false;
             }
         }
+
 
         // 确保数据已经备份后才允许删除
         public async Task<bool> ValidateBackupBeforeDeleteAsync()

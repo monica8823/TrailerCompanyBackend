@@ -68,32 +68,32 @@ namespace TrailerCompanyBackend.Services
             }
         }
 
-        public async Task<bool> UpdateStoreAsync(Store store)
+       public async Task<bool> UpdateStoreNameAsync(int id, string newName)
         {
-            _context.Entry(store).State = EntityState.Modified;
+            var store = await _context.Stores.FindAsync(id);
+
+            if (store == null)
+            {
+                _logger.LogWarning("Store with ID: {StoreId} not found.", id);
+                return false;
+            }
+
+            store.StoreName = newName;
+
             try
             {
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("Store with ID: {StoreId} updated successfully.", store.StoreId);
+                _logger.LogInformation("Store with ID: {StoreId} updated successfully.", id);
                 return true;
-            }
-            catch (DbUpdateConcurrencyException ex)
-            {
-                if (!StoreExists(store.StoreId))
-                {
-                    _logger.LogWarning("Attempt to update non-existing store with ID: {StoreId}", store.StoreId);
-                    return false;
-                }
-
-                _logger.LogError(ex, "Concurrency error occurred while updating store with ID: {StoreId}", store.StoreId);
-                throw;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while updating store with ID: {StoreId}", store.StoreId);
-                throw;
+                _logger.LogError(ex, "Error occurred while updating store with ID: {StoreId}", id);
+                return false;
             }
         }
+
+
 
         public async Task<bool> DeleteStoreAsync(int id)
         {

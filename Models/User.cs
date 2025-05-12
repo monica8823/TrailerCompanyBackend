@@ -2,6 +2,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using TrailerCompanyBackend.Enums;
+using System.Collections.Generic;
+
+
 
 
 public class User
@@ -39,4 +42,8 @@ public class User
         get => Enum.Parse<UserRole>(Role);
         set => Role = value.ToString();
     }
+
+     public List<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
+
 }

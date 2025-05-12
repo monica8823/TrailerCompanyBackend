@@ -4,6 +4,8 @@ using TrailerCompanyBackend.Services;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 
+
+
 namespace TrailerCompanyBackend.Controllers
 {
     [ApiController]
@@ -42,16 +44,43 @@ namespace TrailerCompanyBackend.Controllers
         }
 
     
-        [HttpPost]
-        public async Task<ActionResult<TrailerModel>> CreateTrailerModel(TrailerModel trailerModel)
+        [HttpPost("{storeId}")]
+        public async Task<ActionResult<TrailerModel>> CreateTrailerModel(int storeId, [FromBody] TrailerModel trailerModel)
         {
-            var createdTrailerModel = await _trailerModelManager.CreateTrailerModelAsync(trailerModel);
-            return CreatedAtAction(nameof(GetTrailerModelById), new { trailerModelId = createdTrailerModel.TrailerModelId }, createdTrailerModel);
+            try
+            {
+
+                if (storeId <= 0)
+                {
+                    return BadRequest(new { error = "Invalid Store ID. Store ID must be greater than 0." });
+                }
+
+                if (trailerModel == null || string.IsNullOrWhiteSpace(trailerModel.ModelName))
+                {
+                    return BadRequest(new { error = "Model name is required." });
+                }
+
+                
+                trailerModel.StoreId = storeId;
+
+
+                var createdModel = await _trailerModelManager.CreateTrailerModelAsync(trailerModel);
+
+   
+                return CreatedAtAction(nameof(GetAllTrailerModels), new { storeId }, createdModel);
+            }
+            catch (Exception ex)
+            {
+    
+                return StatusCode(500, new { error = "An unexpected error occurred.", details = ex.Message });
+            }
         }
+
+
 
   
         [HttpPut("{trailerModelId}")]
-        public async Task<IActionResult> UpdateTrailerModel(int trailerModelId, TrailerModel updatedModel)
+        public async Task<IActionResult> UpdateTrailerModel(int trailerModelId, [FromBody]TrailerModel updatedModel)
         {
             var result = await _trailerModelManager.UpdateTrailerModelAsync(trailerModelId, updatedModel);
             if (!result)

@@ -12,9 +12,16 @@ namespace TrailerCompanyBackend.Models
 
         public string ModelName { get; set; } = null!;
 
+        [ForeignKey("Store")]
+        [Required]
         public int StoreId { get; set; }
 
-        public virtual Store Store { get; set; } = null!;
+        [ForeignKey("Month")]
+         public int? MonthId { get; set; }
+
+
+        public virtual Store? Store { get; set; }
+
 
         public virtual ICollection<Trailer> Trailers { get; set; } = new List<Trailer>();
     }

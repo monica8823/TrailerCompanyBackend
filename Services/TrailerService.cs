@@ -1,9 +1,11 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using TrailerCompanyBackend.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using TrailerCompanyBackend.Models;
+using TrailerCompanyBackend.Enums;
 
 
 namespace TrailerCompanyBackend.Services
@@ -15,259 +17,178 @@ namespace TrailerCompanyBackend.Services
 
         public TrailerService(TrailerCompanyDbContext context, ILogger<TrailerService> logger)
         {
-            _context = context;
+            _context = context;//是 DbContext 的instance，用于与数据库交互
             _logger = logger;
         }
 
-        // Method to create trailers based on inputted model names
-        public async Task<bool> CreateTrailersAsync(List<string> modelNames, int storeId, string? customFields = null)
+        // 获取所有拖车
+        public async Task<IEnumerable<Trailer>> GetAllTrailersAsync()//IEnumerable 是一个接口，表示一个可以被枚举（遍历）的集合
         {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                foreach (var modelName in modelNames)
-                {
-                    var trailer = new Trailer
-                    {
-                        ModelName = modelName,
-                        StoreId = storeId,
-                        Vin = null, // Fields are initially empty
-                        Size = null,
-                        RatedCapacity = 0.0, // Use a default value for non-nullable field
-                        CurrentStatus = "Not Stocked", // Default status
-                        CustomFields = customFields // Add custom fields if provided
-                    };
-
-                    _context.Trailers.Add(trailer);
-                }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();  // Commit transaction
-                _logger.LogInformation("Trailers created successfully for store ID: {StoreId}", storeId);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();  // Rollback transaction in case of error
-                _logger.LogError(ex, "Error occurred while creating trailers for store ID: {StoreId}", storeId);
-                return false;
-            }
-        }   
-
-
-
-        // Method to get all trailers by store and name
-        public async Task<List<Trailer>> GetAllTrailersAsync(int storeId, string? modelName = null)
-        {
-            var query = _context.Trailers.Where(t => t.StoreId == storeId);
-            
-            if (!string.IsNullOrEmpty(modelName))
-            {
-                query = query.Where(t => t.ModelName == modelName);
-            }
-
-            return await query.ToListAsync();
-        }
-
-
-        // Method to edit specific details of a trailer with VIN uniqueness check
-       public async Task<bool> EditTrailerDetailsAsync(int trailerId, string? modelName, string? vin, string? size, double? ratedCapacity, string? currentStatus, string? customFields)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var trailer = await _context.Trailers.FindAsync(trailerId);
-                if (trailer == null)
-                {
-                    _logger.LogWarning("Trailer with ID: {TrailerId} not found.", trailerId);
-                    return false;
-                }
-
-                // If VIN is being updated, check its uniqueness
-                if (!string.IsNullOrEmpty(vin) && vin != trailer.Vin)
-                {
-                    var existingTrailer = await _context.Trailers.FirstOrDefaultAsync(t => t.Vin == vin);
-                    if (existingTrailer != null)
-                    {
-                        _logger.LogWarning("A trailer with VIN {VIN} already exists. Update aborted.", vin);
-                        return false;
-                    }
-                }
-
-                // Update each field only if the new value is provided
-                trailer.ModelName = modelName ?? trailer.ModelName;
-                trailer.Vin = vin ?? trailer.Vin;
-                trailer.Size = size ?? trailer.Size;
-                trailer.RatedCapacity = ratedCapacity ?? trailer.RatedCapacity;
-                trailer.CurrentStatus = currentStatus ?? trailer.CurrentStatus;
-                trailer.CustomFields = customFields ?? trailer.CustomFields; // Update custom fields if provided
-
-                _context.Trailers.Update(trailer);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();  // Commit transaction
-                _logger.LogInformation("Trailer details with ID: {TrailerId} updated successfully.", trailerId);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();  // Rollback transaction in case of error
-                _logger.LogError(ex, "Error occurred while updating trailer details with ID: {TrailerId}", trailerId);
-                return false;
-            }
+            return await _context.Trailers//执行了一个数据库查询。Trailers 是 DbSet<Trailer>，表示数据库中 Trailers 表
+                .Include(t => t.TrailerModel) // 加载主实体的数据（这里是 Trailers），不会自动加载与之关联的导航属性（如 TrailerModel）。如果不加 Include查询结果中的每个 Trailer 对象的 TrailerModel 属性会是 null，可能会导致多个小查询
+                .ToListAsync();//将查询结果转化为 List 并异步加载所有数据，调用 .ToListAsync() 会触发查询立即执行，将查询结果加载到内存中，并以 List<T> 的形式返回。
         }
 
 
 
-        // Method to delete a trailer
-        public async Task<bool> DeleteTrailerAsync(int trailerId)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var trailer = await _context.Trailers.FindAsync(trailerId);
-                if (trailer == null)
-                {
-                    _logger.LogWarning("Trailer with ID: {TrailerId} not found.", trailerId);
-                    return false;
-                }
-
-                _context.Trailers.Remove(trailer);
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();  // Commit transaction
-                _logger.LogInformation("Trailer with ID: {TrailerId} deleted successfully.", trailerId);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();  // Rollback transaction in case of error
-                _logger.LogError(ex, "Error occurred while deleting trailer with ID: {TrailerId}", trailerId);
-                return false;
-            }
-        }
-
-
-
-        // Batch method to delete multiple trailers with transaction management
-        public async Task<bool> BatchDeleteTrailersAsync(List<int> trailerIds)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                foreach (var trailerId in trailerIds)
-                {
-                    var trailer = await _context.Trailers.FindAsync(trailerId);
-                    if (trailer == null)
-                    {
-                        _logger.LogWarning("Trailer with ID: {TrailerId} not found.", trailerId);
-                        return false;  // Return false or handle it based on your requirements
-                    }
-
-                    _context.Trailers.Remove(trailer);
-                }
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();  // Commit the transaction after all deletes
-                _logger.LogInformation("Batch deletion of trailers successful.");
-                return true;
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();  // Rollback the transaction in case of an error
-                _logger.LogError(ex, "Error occurred during batch deletion of trailers.");
-                return false;
-            }
-        }
-
-
-        // Method to get logs for a specific trailer
-        public async Task<List<OperationLog>> GetTrailerLogsAsync(int trailerId)
-        {
-            try
-            {
-                var logs = await _context.OperationLogs
-                                        .Where(log => log.EntityId == trailerId && log.EntityType == "Trailer")
-                                        .ToListAsync();
-                _logger.LogInformation("Logs for trailer ID: {TrailerId} retrieved successfully.", trailerId);
-                return logs;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving logs for trailer with ID: {TrailerId}", trailerId);
-                throw;
-            }
-        }
-
-
-        // Method to get a trailer by its ID
+        // 根据 TrailerId 获取特定拖车
         public async Task<Trailer?> GetTrailerByIdAsync(int trailerId)
         {
-            try
+            return await _context.Trailers
+                .Include(t => t.TrailerModel)
+                .FirstOrDefaultAsync(t => t.TrailerId == trailerId);//足条件的第一条数据（如果有）或返回 null
+        }
+
+        // 创建拖车
+        public async Task<Trailer> CreateTrailerAsync(Trailer trailer)
+        {
+            if (string.IsNullOrWhiteSpace(trailer.CurrentStatus))
+            {
+                throw new ArgumentException("CurrentStatus is required.");
+            }
+
+            var trailerModelExists = await _context.TrailerModels.AnyAsync(tm => tm.TrailerModelId == trailer.TrailerModelId);
+            if (!trailerModelExists)
+            {
+                throw new ArgumentException("Invalid TrailerModelId. TrailerModel does not exist.");
+            }
+
+            _context.Trailers.Add(trailer);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Trailer created successfully with ID: {TrailerId}", trailer.TrailerId);
+            return trailer;
+        }
+
+        // 更新拖车
+        public async Task<bool> UpdateTrailerAsync(int trailerId, Trailer updatedTrailer)
+        {
+            var existingTrailer = await _context.Trailers.FindAsync(trailerId);
+            if (existingTrailer == null)
+            {
+                _logger.LogWarning("Trailer with ID {TrailerId} not found.", trailerId);
+                return false;
+            }
+
+            existingTrailer.Vin = updatedTrailer.Vin;
+            existingTrailer.CurrentStatus = updatedTrailer.CurrentStatus;
+            existingTrailer.CustomFields = updatedTrailer.CustomFields;
+            existingTrailer.TrailerModelId = updatedTrailer.TrailerModelId;
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Trailer with ID {TrailerId} updated successfully.", trailerId);
+            return true;
+        }
+
+        // 删除拖车
+        public async Task<bool> DeleteTrailerAsync(int trailerId)
+        {
+            var trailer = await _context.Trailers.FindAsync(trailerId);
+            if (trailer == null)
+            {
+                _logger.LogWarning("Trailer with ID {TrailerId} not found.", trailerId);
+                return false;
+            }
+
+            _context.Trailers.Remove(trailer);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Trailer with ID {TrailerId} deleted successfully.", trailerId);
+            return true;
+        }
+
+        // 获取特定 TrailerModel 下的所有拖车
+        public async Task<IEnumerable<Trailer>> GetTrailersByModelAsync(int trailerModelId)
+        {
+            return await _context.Trailers
+                .Where(t => t.TrailerModelId == trailerModelId)
+                .Include(t => t.TrailerModel)
+                .ToListAsync();
+        }
+
+                    public async Task<bool> UpdateTrailerStatusAsync(int trailerId, string newStatus)
             {
                 var trailer = await _context.Trailers.FindAsync(trailerId);
                 if (trailer == null)
                 {
-                    _logger.LogWarning("Trailer with ID: {TrailerId} not found.", trailerId);
-                    return null;
+                    _logger.LogWarning("Trailer with ID {TrailerId} not found.", trailerId);
+                    return false;
                 }
 
-                _logger.LogInformation("Trailer with ID: {TrailerId} retrieved successfully.", trailerId);
-                return trailer;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred while retrieving trailer with ID: {TrailerId}", trailerId);
-                throw;
-            }
-        }
+                // 校验状态是否有效
+                if (!Enum.TryParse<TrailerStatus>(newStatus, out var parsedStatus))
+                {
+                    _logger.LogWarning("Invalid status value: {NewStatus}", newStatus);
+                    return false;
+                }
 
-        // Method to search trailers globally across stores by VIN or InvoiceNumber
-     
-        public async Task<List<Trailer>> GlobalSearchTrailersAsync(string? vin, string? invNumber)
+                trailer.CurrentStatus = parsedStatus.ToString();
+
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Trailer status updated successfully. ID: {TrailerId}, New Status: {NewStatus}", trailerId, newStatus);
+                return true;
+            }
+
+             // 批量添加 VIN
+        public async Task<bool> BatchAddVinsAsync(Dictionary<int, string> trailerIdVinMap)
         {
-            try
+            foreach (var kvp in trailerIdVinMap)
             {
-                IQueryable<Trailer> query = _context.Trailers.AsQueryable();
-
-                if (!string.IsNullOrEmpty(vin))
+                var trailer = await _context.Trailers.FindAsync(kvp.Key);
+                if (trailer == null)
                 {
-                    query = query.Where(t => t.Vin == vin);
+                    _logger.LogWarning("Trailer with ID {TrailerId} not found. Skipping.", kvp.Key);
+                    continue;
                 }
 
-                if (!string.IsNullOrEmpty(invNumber))
-                {
-                    query = query.Where(t => t.SalesRecords.Any(sr => sr.InvNumber == invNumber));
-                }
-
-                var trailers = await query.ToListAsync();
-
-                if (trailers.Count == 0)
-                {
-                    _logger.LogWarning("No trailers found for VIN: {VIN} or InvNumber: {InvNumber}", vin, invNumber);
-                }
-                else
-                {
-                    _logger.LogInformation("Trailers found for VIN: {VIN} or InvNumber: {InvNumber}", vin, invNumber);
-                }
-
-                return trailers;
+                trailer.Vin = kvp.Value;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error occurred during global trailer search for VIN: {VIN} or InvNumber: {InvNumber}", vin, invNumber);
-                throw;
-            }
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Bulk VIN addition completed successfully.");
+            return true;
         }
 
+        // 批量删除 VIN
+        public async Task<bool> BatchDeleteVinsAsync(IEnumerable<int> trailerIds)
+        {
+            foreach (var trailerId in trailerIds)
+            {
+                var trailer = await _context.Trailers.FindAsync(trailerId);
+                if (trailer == null)
+                {
+                    _logger.LogWarning("Trailer with ID {TrailerId} not found. Skipping.", trailerId);
+                    continue;
+                }
 
+                trailer.Vin = null; // 删除 VIN 的逻辑
+            }
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Bulk VIN deletion completed successfully.");
+            return true;
+        }
+
+        // 批量编辑 VIN
+        public async Task<bool> BatchEditVinsAsync(Dictionary<int, string> trailerIdVinMap)
+        {
+            foreach (var kvp in trailerIdVinMap)
+            {
+                var trailer = await _context.Trailers.FindAsync(kvp.Key);
+                if (trailer == null)
+                {
+                    _logger.LogWarning("Trailer with ID {TrailerId} not found. Skipping.", kvp.Key);
+                    continue;
+                }
+
+                trailer.Vin = kvp.Value;
+            }
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Bulk VIN editing completed successfully.");
+            return true;
+        }
+    
 
     }
 }
-
-// CreateTrailersAsync：创建单个或多个拖车记录。
-// GetAllTrailersAsync：获取所有拖车。
-// EditTrailerDetailsAsync：编辑拖车的部分或所有信息。
-// DeleteTrailerAsync：删除单个拖车。
-// BatchDeleteTrailersAsync：批量删除拖车。
-// GetTrailerLogsAsync：获取指定拖车的操作日志。
-// GetTrailerById 方法
-// GlobalSearchTrailersAsync 全局搜索。

@@ -5,14 +5,20 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
 
+
 namespace TrailerCompanyBackend.Services
 {
     public class TrailerModelManager
     {
         private readonly TrailerCompanyDbContext _context;
         private readonly ILogger<TrailerModelManager> _logger;
+ 
 
-        public TrailerModelManager(TrailerCompanyDbContext context, ILogger<TrailerModelManager> logger)
+
+         public TrailerModelManager(
+            TrailerCompanyDbContext context,
+            ILogger<TrailerModelManager> logger
+          )
         {
             _context = context;
             _logger = logger;
@@ -27,13 +33,32 @@ namespace TrailerCompanyBackend.Services
                 .ToListAsync();
         }
 
-        // 添加新的 TrailerModel
-        public async Task<TrailerModel> CreateTrailerModelAsync(TrailerModel model)
+        // 创建新的 TrailerModel，需要进行store Id检查，必须要有效id才能创建，防止错误。
+              public async Task<TrailerModel> CreateTrailerModelAsync(TrailerModel trailerModel)
         {
-            _context.TrailerModels.Add(model);
+            if (trailerModel.StoreId <= 0)
+            {
+                throw new ArgumentException("Invalid Store ID.");
+            }
+
+            if (string.IsNullOrWhiteSpace(trailerModel.ModelName))
+            {
+                throw new ArgumentException("Model name is required.");
+            }
+
+            // 添加 TrailerModel 并保存到数据库
+            _context.TrailerModels.Add(trailerModel);
             await _context.SaveChangesAsync();
-            return model;
+
+            _logger.LogInformation(
+                "TrailerModel created successfully with ID: {TrailerModelId} for Store ID: {StoreId}",
+                trailerModel.TrailerModelId,
+                trailerModel.StoreId
+            );
+
+            return trailerModel;
         }
+
 
         // 获取特定 TrailerModel 通过其 ID
         public async Task<TrailerModel?> GetTrailerModelByIdAsync(int trailerModelId)
@@ -53,6 +78,14 @@ namespace TrailerCompanyBackend.Services
         // 更新 TrailerModel
         public async Task<bool> UpdateTrailerModelAsync(int trailerModelId, TrailerModel updatedModel)
         {
+
+            var storeExists = await _context.Stores.AnyAsync(s => s.StoreId == updatedModel.StoreId);
+            if (!storeExists)
+            {
+                _logger.LogWarning("Update failed: Store ID {StoreId} does not exist.", updatedModel.StoreId);
+                return false; 
+            }
+                    
             var existingModel = await _context.TrailerModels.FindAsync(trailerModelId);
             if (existingModel == null)
             {

@@ -3,12 +3,12 @@ namespace TrailerCompanyBackend.Enums
 {
     public enum TrailerStatus
     {
-        NotStocked,
-        Stocked,
-        Assembled,
-        Transferred,
-        Sold,
-        Repaired,
-        Disposed
+      NotAvailable,
+      Assembling,
+      Available,    
+      Transferred,
+      sold,
+      maintenance,
+      diposed
     }
 }

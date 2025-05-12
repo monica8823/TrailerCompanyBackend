@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TrailerCompanyBackend.Models;
 
-public partial class InventoryRecord
+public partial class InventoryRecord//库存记录表，储存实际值。
 {
     public int RecordId { get; set; }
 
